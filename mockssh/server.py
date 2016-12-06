@@ -67,7 +67,7 @@ class Handler(paramiko.ServerInterface):
 
     def check_auth_publickey(self, username, key):
         try:
-            _, known_public_key = self.server._users[username]
+            known_public_key = self.server._users[username].k
         except KeyError:
             self.log.debug("Unknown user '%s'", username)
             return paramiko.AUTH_FAILED
@@ -90,6 +90,15 @@ class Handler(paramiko.ServerInterface):
         return "publickey"
 
 
+class User(object):
+    def __init__(self, uid, password=None, private_key_path=None):
+        self.uid = uid
+        self.password = password
+        self.private_key_path = private_key_path
+        if self.private_key_path:
+            self.k = paramiko.RSAKey.from_private_key_file(private_key_path)
+
+
 class Server(object):
 
     host = "127.0.0.1"
@@ -97,15 +106,18 @@ class Server(object):
     log = logging.getLogger(__name__)
 
     def __init__(self, users):
+        """
+        :param users: list of User objects
+        """
         self._socket = None
         self._thread = None
-        self._users = {}
-        for uid, private_key_path in users.items():
-            self.add_user(uid, private_key_path)
+        # backwards compatibility
+        if isinstance(users, dict):
+            users = [User(uid=uid, private_key_path=key_path) for uid, key_path in users.iteritems()]
+        self._users = {user.uid:user for user in users}
 
     def add_user(self, uid, private_key_path):
-        k = paramiko.RSAKey.from_private_key_file(private_key_path)
-        self._users[uid] = (private_key_path, k)
+        self._users[uid] = User(uid=uid, private_key_path=private_key_path)
 
     def __enter__(self):
         self._socket = s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -139,7 +151,7 @@ class Server(object):
         self._thread = None
 
     def client(self, uid):
-        private_key_path, _ = self._users[uid]
+        user = self._users[uid]
         c = paramiko.SSHClient()
         host_keys = c.get_host_keys()
         key = paramiko.RSAKey.from_private_key_file(SERVER_KEY_PATH)
@@ -149,7 +161,8 @@ class Server(object):
         c.connect(hostname=self.host,
                   port=self.port,
                   username=uid,
-                  key_filename=private_key_path,
+                  password=user.password,
+                  key_filename=user.private_key_path,
                   allow_agent=False,
                   look_for_keys=False)
         return c
