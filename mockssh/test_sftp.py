@@ -25,6 +25,8 @@ def test_sftp_session(server):
             assert not os.access(second_copy, os.F_OK)
             sftp.get(target_fname, second_copy)
             assert files_equal(target_fname, second_copy)
+            sftp.remove(target_fname)
+            assert not os.path.exists(target_fname)
 
 
 @fixture(params=[("chmod", "/", 0o755),

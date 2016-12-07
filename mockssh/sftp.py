@@ -86,6 +86,11 @@ class SFTPServerInterface(paramiko.SFTPServerInterface):
         st = os.stat(path)
         return paramiko.SFTPAttributes.from_stat(st, path)
 
+    @returns_sftp_error
+    def remove(self, path):
+        os.remove(path)
+        return paramiko.SFTP_OK
+
 
 class SFTPServer(paramiko.SFTPServer):
 
