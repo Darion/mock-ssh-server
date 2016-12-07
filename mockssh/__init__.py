@@ -2,8 +2,10 @@ from mockssh import server
 
 
 __all__ = [
-    "Server"
+    "Server",
+    "User",
 ]
 
 
 Server = server.Server
+User = server.User

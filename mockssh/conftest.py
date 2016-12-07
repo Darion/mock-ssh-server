@@ -3,7 +3,7 @@ import os
 
 from pytest import fixture, yield_fixture
 
-from mockssh import Server
+from mockssh import Server, User
 
 
 __all__ = [
@@ -20,9 +20,10 @@ def user_key_path():
 
 @yield_fixture(scope="function")
 def server():
-    users = {
-        "sample-user": SAMPLE_USER_KEY,
-    }
+    users = [
+                User(uid="sample-user", private_key_path=SAMPLE_USER_KEY),
+                User(uid="password-user", password='12345'),
+            ]
     with Server(users) as s:
         yield s
 

@@ -77,6 +77,14 @@ class Handler(paramiko.ServerInterface):
         self.log.debug("Rejecting public ley for user '%s'", username)
         return paramiko.AUTH_FAILED
 
+    def check_auth_password(self, username, password):
+        if username not in self.server._users:
+            self.log.debug("Unknown user '%s'", username)
+            return paramiko.AUTH_FAILED
+        if password == self.server._users[username].password:
+            return paramiko.AUTH_SUCCESSFUL
+        return paramiko.AUTH_FAILED
+
     def check_channel_exec_request(self, channel, command):
         self.command_queues.setdefault(channel.get_id(), Queue()).put(command)
         return True
@@ -87,7 +95,7 @@ class Handler(paramiko.ServerInterface):
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def get_allowed_auths(self, username):
-        return "publickey"
+        return "publickey, password"
 
 
 class User(object):
