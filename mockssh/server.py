@@ -103,6 +103,7 @@ class User(object):
         self.uid = uid
         self.password = password
         self.private_key_path = private_key_path
+        self.private_key_password = private_key_password
         self.pkey = None
         if self.private_key_path:
             self.pkey = paramiko.RSAKey.from_private_key_file(private_key_path, password=private_key_password)
