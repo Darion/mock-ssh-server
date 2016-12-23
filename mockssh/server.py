@@ -99,12 +99,14 @@ class Handler(paramiko.ServerInterface):
 
 
 class User(object):
-    def __init__(self, uid, password=None, private_key_path=None):
+    def __init__(self, uid, password=None, private_key_path=None, private_key_password=None):
         self.uid = uid
         self.password = password
         self.private_key_path = private_key_path
+        self.pkey = None
         if self.private_key_path:
-            self.k = paramiko.RSAKey.from_private_key_file(private_key_path)
+            self.pkey = paramiko.RSAKey.from_private_key_file(private_key_path, password=private_key_password)
+            self.k = self.pkey
 
 
 class Server(object):
@@ -170,7 +172,8 @@ class Server(object):
                   port=self.port,
                   username=uid,
                   password=user.password,
-                  key_filename=user.private_key_path,
+                  # key_filename=user.private_key_path,
+                  pkey=user.pkey,
                   allow_agent=False,
                   look_for_keys=False)
         return c

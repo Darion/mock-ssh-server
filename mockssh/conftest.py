@@ -12,6 +12,7 @@ __all__ = [
 
 
 SAMPLE_USER_KEY = os.path.join(os.path.dirname(__file__), "sample-user-key")
+SAMPLE_USER_PASSWORDED_KEY = os.path.join(os.path.dirname(__file__), "sample-user-passworded-key")
 
 
 @fixture
@@ -22,7 +23,8 @@ def user_key_path():
 def server():
     users = [
                 User(uid="sample-user", private_key_path=SAMPLE_USER_KEY),
-                User(uid="password-user", password='12345'),
+                User(uid="sample-user", private_key_path=SAMPLE_USER_PASSWORDED_KEY, private_key_password='qwerty'),
+                User(uid="password-user", password='qwerty'),
             ]
     with Server(users) as s:
         yield s
